@@ -5,11 +5,12 @@ twitter = new Twit(keys)
 
 # Most common words (for tracking)
 words = [
-  "the", "a" # articles
-  "is", "are", "was" # to be
-  "i", "me", "it", "you", "that", "there"
+ # "the", "a" # articles
+  "is", "are", "was", "were" # to be
+  "i", "me", "it", "you", "that", "they"
+  #"he", "him", "she", "her", "we", 
   "of", "and", "or", "in", "to"
-  "would", "could", "should"
+  #"would", "could", "should"
 ]
 trending = {}
 
@@ -38,12 +39,11 @@ analyzeTweet = (tweet, hashtags) ->
       buffer[tag] = 1
 
 swapBuffers = () ->
-  console.log "swapping"
   temp = buffer
   buffer = {}
   
   temp = new () -> 
-    @[k] = temp[k] for k of temp when temp[k] > 2
+    @[k] = temp[k] for k of temp when temp[k] > 1
     @ # return this
   bufferString = JSON.stringify(temp)
   
