@@ -1,5 +1,8 @@
 keys.json
 app.js
 twitter_analysis.js
-node_modules/
+*.js
 public/d3_min.js
+node_modules/
+*.json
+!index.js

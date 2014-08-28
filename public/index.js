@@ -25,15 +25,17 @@ function poll() {
 }
 
 function updateTwitterData(newData) {
+    console.log(newData);
     for (var k in newData) {
         if (!twitterData[k]) {
             twitterData[k] = newData[k];
         } else {
-            twitterData[k] += newData[k];
+            twitterData[k]["pos"] += newData[k]["pos"];
+            twitterData[k]["neg"] += newData[k]["neg"];
         }
         
-        if (twitterData[k] > maxTweets) {
-            maxTweets = twitterData[k]
+        if (twitterData[k]["pos"] + twitterData[k]["neg"] > maxTweets) {
+            maxTweets = twitterData[k]["pos"] + twitterData[k]["neg"]
         }
     }
     updateChart();
@@ -46,22 +48,53 @@ function updateChart() {
     //xScale.domain([0, 1000]);
     
     var data = d3.entries(twitterData);
+    console.log(data);
+    console.log(twitterData);
     data.sort(function(a, b) {
-        return b.value - a.value;
+        a = a.value;
+        b = b.value;
+        var temp = b["pos"] + b["neg"] - a["pos"] - a["neg"];
+        if (temp) {
+            return temp;
+        } else {
+            return b["pos"] - a["pos"];
+        }
     });
     
     console.log(data.length);
     
-    var bars = svg.selectAll("rect")
+    var bars = svg.selectAll("g")
         .data(data, function(d) { return d.key; });
     
     // Add new bars:
-    bars.enter().append("rect")
-        .attr("width", 0)
+    enterBars = bars.enter()
+      .append("g")
+        .attr("transform", "translate(0," + (data.length * (barHeight + 2)) + ")");
+             
+    enterBars.append("rect")
+        .attr("width", 100)
         .attr("height", barHeight)
         .attr("x", 200)
-        .attr("y", data.length * (barHeight + 2))
-        .attr("fill", "steelblue");
+        .attr("z-index", 1)
+        .attr("fill", "steelblue")
+        .attr("class", "positive");
+        
+    enterBars.append("rect")
+        .attr("width", 50)
+        .attr("height", barHeight)
+        .attr("x", 200)
+        //.attr("y", data.length * (barHeight + 2))
+        .attr("fill", "red")
+        .attr("z-index", 10)
+        .attr("class", "negative");
+      
+    enterBars.append("text")
+        .attr("x", 195)
+        //.attr("y", barHeight/2)
+        .attr("fill", "black")
+        .attr("text-anchor", "end")
+        .attr("dy", "1em")
+        .text(function(d) { return d.key; });
       
     //bars.append("text")
     //    .attr("x", function(d) { return xScale(d.value); })
@@ -69,16 +102,32 @@ function updateChart() {
     //    .attr("fill", "black")
     //    .text(function(d) { return d.key; });
         
+        
     bars.transition().duration(1000)
-        .attr("width", function(d) { return xScale(d.value) })
-      .transition().duration(1000)
-        .attr("y", function(d, i) { return i * (barHeight + 2); });
+        .attr("transform", function(d, i) {
+            return "translate(0," + (i * (barHeight + 2)) + ")";
+        })
+     
+        
+    bars.selectAll(".negative")
+        .transition().duration(1000)
+        .attr("width", function(d) { 
+           return xScale(d.value["neg"]);
+        });
+        
+     bars.selectAll(".positive")
+        .transition().duration(1000)
+        .attr("width", function(d) { 
+           return xScale(d.value["pos"] + d.value["neg"]);
+        });
+  
+  
         
     bars.exit().remove();
     
     
     //////////////////////
-    var labels = svg.selectAll("text")
+   /* var labels = svg.selectAll("text")
         .data(data, function(d) { return d.key; });
         
     labels.enter().append("text")
@@ -91,9 +140,9 @@ function updateChart() {
         
     labels.transition().duration(1000)
         .attr("x", 195)
-        .text(function(d) { return d.key + " | " + d.value; })
+        .text(function(d) { return d.key; })
       .transition().duration(1000)
-        .attr("y", function(d, i) { return i * (barHeight + 2); });
+        .attr("y", function(d, i) { return i * (barHeight + 2); });*/
                 
     $("svg").attr("height", data.length * (barHeight + 2))
 }
